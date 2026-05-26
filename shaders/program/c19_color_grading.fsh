@@ -156,6 +156,10 @@ void main() {
     vec3 bloom = get_bloom();
     float bloom_intensity = 0.12 * BLOOM_INTENSITY;
 
+#if defined WORLD_NETHER || defined WORLD_END
+    bloom_intensity = 0.03;
+#endif
+
     scene_color = mix(scene_color, bloom, bloom_intensity);
 
 #ifdef BLOOMY_FOG
