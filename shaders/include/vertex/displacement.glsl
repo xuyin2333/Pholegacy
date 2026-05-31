@@ -63,8 +63,6 @@ float get_water_displacement(vec3 world_pos, float skylight) {
     wave = (wave * 0.05 - 0.025) * (skylight * 0.9 + 0.1);
 
 #ifdef LOD_MOD_ACTIVE
-    // Attenuate displacement towards the edge of the render distance, to
-    // prevent seam between vanilla and LoD terrain
     float fade = cubic_length(world_pos.xz - cameraPosition.xz) / far;
 
     wave *= exp2(-8.0 * cube(fade));

@@ -79,6 +79,10 @@ vec3 get_specular_highlight(
     float LoV,
     float LoH
 ) {
+    if (material.is_foliage) {
+        return vec3(0.0);
+    }
+
     const float specular_max_value
         = 4.0; // Maximum value imposed on specular highlight to prevent it from
                // overloading bloom
@@ -301,6 +305,10 @@ vec3 get_specular_reflections(
     float skylight,
     bool is_water
 ) {
+    if (material.is_foliage) {
+        return vec3(0.0);
+    }
+
     vec3 albedo_tint
         = material.is_hardcoded_metal ? material.albedo : vec3(1.0);
 

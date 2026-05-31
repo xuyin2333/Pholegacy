@@ -27,7 +27,7 @@ const int shadow_map_res = int(float(shadowMapResolution) * MC_SHADOW_QUALITY);
 const float shadow_map_pixel_size = rcp(float(shadow_map_res));
 
 vec2 blocker_search(vec3 scene_pos, float dither, bool has_sss) {
-    int step_count = has_sss ? SSS_STEPS : 3;
+    int step_count = has_sss ? SSS_STEPS : SHADOW_BLOCKER_STEPS;
 
     vec3 shadow_view_pos = transform(shadowModelView, scene_pos);
     vec3 shadow_clip_pos = project_ortho(shadowProjection, shadow_view_pos);
@@ -97,17 +97,22 @@ vec3 shadow_pcf(
     float penumbra_size,
     float dither
 ) {
-    // penumbra_size > max_filter_radius: blur
-    // penumbra_size < min_filter_radius: anti-alias (blur then sharpen)
     float distortion_factor = get_distortion_factor(shadow_clip_pos.xy);
     float min_filter_radius = 2.0 * shadow_map_pixel_size * distortion_factor;
 
-    float filter_radius = max(penumbra_size, min_filter_radius);
-    float filter_scale = sqr(filter_radius / min_filter_radius);
+    // Clamp penumbra to prevent aliasing from overly precise blocker search
+    // Inspired by Revelation's PCSS: minimum penumbra ensures smooth edges,
+    // maximum prevents excessive blurring
+    const float penumbra_min_scale = 2.0;
+    const float penumbra_max_scale = 16.0;
+    float min_penumbra = min_filter_radius * penumbra_min_scale;
+    float max_penumbra = min_filter_radius * penumbra_max_scale;
 
-    int step_count =
-        int(SHADOW_PCF_STEPS_MIN + SHADOW_PCF_STEPS_SCALE * filter_scale);
-    step_count = min(step_count, SHADOW_PCF_STEPS_MAX);
+    float sharpen_factor = clamp(penumbra_size * rcp(min_penumbra), 0.0, 1.0);
+    penumbra_size = clamp(penumbra_size, min_penumbra, max_penumbra);
+
+    float filter_radius = max(penumbra_size, min_filter_radius);
+    int step_count = SHADOW_PCF_STEPS;
 
     float shadow = 0.0;
 
@@ -115,7 +120,8 @@ vec3 shadow_pcf(
     float weight_sum = 0.0;
 
     // perform first 4 iterations and filter shadow color
-    for (int i = 0; i < 4; ++i) {
+    int initial_samples = min(4, step_count);
+    for (int i = 0; i < initial_samples; ++i) {
         vec2 offset =
             vogel_disc_sample(i, step_count, dither * tau) * filter_radius;
 
@@ -158,7 +164,7 @@ vec3 shadow_pcf(
     }
 
     // perform remaining iterations
-    for (int i = 4; i < step_count; ++i) {
+    for (int i = initial_samples; i < step_count; ++i) {
         vec2 offset =
             vogel_disc_sample(i, step_count, dither * tau) * filter_radius;
 
@@ -171,13 +177,11 @@ vec3 shadow_pcf(
 
     float rcp_steps = rcp(float(step_count));
 
-    // sharpening for small penumbra sizes
-    float sharpening_threshold =
-        0.4 * max0((min_filter_radius - penumbra_size) / min_filter_radius);
-    shadow = linear_step(
-        sharpening_threshold,
-        1.0 - sharpening_threshold,
-        shadow * rcp_steps
+    // Revelation-style sharpening: smoothstep for clean anti-aliased near shadows
+    shadow = mix(
+        smoothstep(0.3, 0.7, shadow * rcp_steps),
+        shadow * rcp_steps,
+        sharpen_factor
     );
 
     return shadow * color;

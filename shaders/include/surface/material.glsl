@@ -25,9 +25,9 @@ struct Material {
 const Material water_material = Material(
     vec3(0.0),
     vec3(0.0),
-    vec3(0.02),
+    vec3(0.01),
     vec3(0.0),
-    0.002,
+    0.01,
     1.0,
     0.0,
     0.0,

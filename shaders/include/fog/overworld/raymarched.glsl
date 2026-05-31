@@ -11,6 +11,15 @@
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
 
+#ifdef AIR_FOG_CLOUDY_NOISE
+float noise3d(vec3 pos) {
+    float n1 = texture(noisetex, pos.xy * 0.1).w;
+    float n2 = texture(noisetex, pos.xz * 0.1).w;
+    float n3 = texture(noisetex, pos.yz * 0.1).w;
+    return (n1 + n2 + n3) * (1.0 / 3.0);
+}
+#endif
+
 vec2 air_fog_density(vec3 world_pos) {
     const vec2 mul = -rcp(air_fog_falloff_half_life);
     const vec2 add = -mul * air_fog_falloff_start;
@@ -21,13 +30,20 @@ vec2 air_fog_density(vec3 world_pos) {
     density *= linear_step(air_fog_volume_bottom, SEA_LEVEL, world_pos.y);
 
 #ifdef AIR_FOG_CLOUDY_NOISE
-    const vec3 wind = 0.0003 * vec3(1.0, 0.0, 0.7);
+    const vec3 wind = 0.0005 * vec3(1.0, 0.5, 0.7);
 
-    float noise
-        = texture(noisetex, 0.001 * world_pos.xz + wind.xz * frameTimeCounter)
-              .w;
+    vec3 noise_pos = world_pos * 0.008 + wind * frameTimeCounter;
 
-    density.y *= 4.0 * sqr(noise);
+    float fbm = 0.0;
+    float amp = 1.0;
+    for (int j = 0; j < 3; j++) {
+        fbm += amp * noise3d(noise_pos);
+        noise_pos = noise_pos * 3.5 + wind * frameTimeCounter;
+        amp *= 0.5;
+    }
+
+    float noise_factor = max(fbm * 1.5 - 0.7, 0.0) * 2.0 + 0.15;
+    density.y *= noise_factor * 3.0 + 1.0;
 #endif
 
     return density * (0.5 * OVERWORLD_FOG_INTENSITY);
@@ -99,6 +115,8 @@ mat2x3 raymarch_air_fog(
     float rSteps = rcp(float(step_count));
     float base_step_length = ray_length * rSteps * rSteps;
 
+    float LoV = dot(world_dir, light_dir);
+
     vec3 transmittance = vec3(1.0);
 
     mat2x3 light_sun = mat2x3(0.0);
@@ -158,10 +176,31 @@ mat2x3 raymarch_air_fog(
         vec3 step_transmitted_fraction
             = (1.0 - step_transmittance) / max(step_optical_depth, eps);
 
-        vec3 visible_scattering = step_transmitted_fraction * transmittance;
+        // Phase 2: Raymarch sunlight through fog for volumetric light shafts
+        vec2 optical_depth_sun = vec2(0.0);
+        float sun_step = 4.0;
+        vec3 light_pos = world_pos;
+        for (int j = 0; j < 3; j++) {
+            sun_step *= 1.5;
+            light_pos += light_dir * sun_step;
+            vec2 sun_density = air_fog_density(light_pos);
+            optical_depth_sun += sun_density * sun_step;
+        }
 
-        light_sun[0] += visible_scattering * density.x * shadow;
-        light_sun[1] += visible_scattering * density.y * shadow;
+        vec3 step_optical_depth_sun
+            = fog_params.rayleigh_scattering_coeff * optical_depth_sun.x
+            + fog_params.mie_extinction_coeff * optical_depth_sun.y;
+        vec3 sun_transmittance = exp(-step_optical_depth_sun);
+
+        // Phase 1: Powder Effect - stronger scattering toward light direction
+        float LoV01 = LoV * 0.5 + 0.5;
+        float step_density = dot(step_optical_depth, vec3(1.0 / 3.0));
+        float powder = (1.0 - exp(-0.5 * step_density)) * (1.0 - LoV01) + LoV01;
+
+        vec3 visible_scattering = step_transmitted_fraction * transmittance * powder;
+
+        light_sun[0] += visible_scattering * density.x * shadow * sun_transmittance;
+        light_sun[1] += visible_scattering * density.y * shadow * sun_transmittance;
         light_sky[0] += visible_scattering * density.x;
         light_sky[1] += visible_scattering * density.y;
 
@@ -181,7 +220,6 @@ mat2x3 raymarch_air_fog(
         light_sky[1] *= max(skylight, eye_skylight);
     }
 
-    float LoV = dot(world_dir, light_dir);
     float mie_phase = 0.7 * henyey_greenstein_phase(LoV, 0.5)
         + 0.3 * henyey_greenstein_phase(LoV, -0.2);
 
@@ -207,8 +245,7 @@ mat2x3 raymarch_air_fog(
             + 0.3 * henyey_greenstein_phase(LoV, -0.2 * anisotropy);
 
         scattering += scatter_amount
-            * (light_sun * vec2(isotropic_phase, mie_phase)) * light_color
-            * (1.0 - 0.9 * rainStrength);
+            * (light_sun * vec2(isotropic_phase, mie_phase)) * light_color;
 
         scatter_amount *= 0.5;
         anisotropy *= 0.7;

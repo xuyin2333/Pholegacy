@@ -290,7 +290,7 @@ vec4 water_absorption_approx(
         color.rgb
             + water_fog[0] * (1.0 + 6.0 * sqr(water_fog[1]))
                 * brightness_control,
-        1.0 - water_fog[1].x
+        1.0 - water_fog[1].y
     );
 }
 

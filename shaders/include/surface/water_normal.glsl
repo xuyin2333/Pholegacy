@@ -54,11 +54,11 @@ float get_water_height(vec2 coord, vec2 wave_dir, mat2 wave_rot, float t) {
 
     // Noise
     const float noise_frequency = 0.007;
-    const float noise_strength = 2.0;
+    const float noise_strength = 3.5;
 
     // Height variation
     const float height_variation_frequency = 0.001;
-    const float min_height = 0.4;
+    const float min_height = 0.25;
     const float height_variation_scale = 2.0;
     const float height_variation_offset = -0.5;
     const float height_variation_scroll_speed = 0.1;
@@ -88,7 +88,6 @@ float get_water_height(vec2 coord, vec2 wave_dir, mat2 wave_rot, float t) {
     // Calculate wave height
 
     float height = 0.0;
-    float amplitude_sum = 0.0;
 
     float wave_length = 1.0;
     float amplitude = 1.0;
@@ -106,7 +105,7 @@ float get_water_height(vec2 coord, vec2 wave_dir, mat2 wave_rot, float t) {
 
         amplitude *= persistence;
         frequency *= lacunarity;
-        wave_length *= 1.5;
+        wave_length *= 2.0;
 
         wave_dir *= wave_rot;
     }
@@ -135,14 +134,14 @@ vec3 get_water_normal(
     float t;
     water_waves_setup(flowing_water, flow_dir, wave_dir, wave_rot, t);
 
-    float h = 0.05 * (1.0 + dot(fwidth(coord), vec2(0.2)));
+    const float h = 0.1;
     float wave0 = get_water_height(coord, wave_dir, wave_rot, t);
     float wave1 = get_water_height(coord + vec2(h, 0.0), wave_dir, wave_rot, t);
     float wave2 = get_water_height(coord + vec2(0.0, h), wave_dir, wave_rot, t);
 
 #if defined WORLD_OVERWORLD
     float normal_influence = flowing_water
-        ? 0.1
+        ? 0.15
         : mix(0.01, 0.04 + 0.15 * rainStrength, dampen(skylight));
 #else
     float normal_influence = 0.04;
@@ -154,7 +153,7 @@ vec3 get_water_normal(
     );
     normal_influence *= WATER_WAVE_STRENGTH;
 
-    vec3 normal = vec3(wave0 - wave1, wave0 - wave2, h);
+    vec3 normal = vec3(wave1 - wave0, wave2 - wave0, h);
     normal.xy *= normal_influence;
 
     return normalize(normal);
@@ -166,28 +165,44 @@ vec2 get_water_parallax_coord(
     vec2 flow_dir,
     bool flowing_water
 ) {
-    const int step_count = 12;
-    const float parallax_depth = 0.2;
+    const int sample_count = WATER_PARALLAX_SAMPLES;
+    const float parallax_amplitude = 0.35;
 
     vec2 wave_dir;
     mat2 wave_rot;
     float t;
     water_waves_setup(flowing_water, flow_dir, wave_dir, wave_rot, t);
 
-    vec3 ray_step = vec3(
-        tangent_dir.xy * rcp(-tangent_dir.z) * parallax_depth,
-        1.0
-    ) * inversesqrt(float(step_count));
+    float view_slope = max(-tangent_dir.z, 0.005);
+    vec2 march_stride = tangent_dir.xy * parallax_amplitude
+        / (view_slope * float(sample_count));
 
-    float height = get_water_height(coord, wave_dir, wave_rot, t);
-    vec3 offset = vec3(0.0, 0.0, 1.0) + height * ray_step;
+    float height_field = get_water_height(coord, wave_dir, wave_rot, t);
+    float track_progress = 0.0;
+    float prior_height = height_field;
 
-    for (int i = 0; i < step_count && height < offset.z; ++i) {
-        height = get_water_height(coord + offset.xy, wave_dir, wave_rot, t);
-        offset += (height - offset.z) * ray_step;
+    for (int iter = 0; iter < sample_count; ++iter) {
+        coord += march_stride;
+        prior_height = height_field;
+        height_field = get_water_height(coord, wave_dir, wave_rot, t);
+        track_progress += rcp(float(sample_count));
+
+        if (track_progress >= height_field) {
+            break;
+        }
     }
 
-    return coord + offset.xy;
+    float elevation_prior = prior_height
+        - (track_progress - rcp(float(sample_count)));
+    float elevation_after = height_field - track_progress;
+
+    return mix(
+        coord,
+        coord - march_stride,
+        clamp(elevation_after
+            / (elevation_after - elevation_prior + 1e-7),
+            0.0, 1.0)
+    );
 }
 
 #endif // INCLUDE_MISC_WATER_NORMAL

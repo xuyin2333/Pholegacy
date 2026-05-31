@@ -61,7 +61,7 @@ vec4 draw_distant_water(
 
     water_color.rgb = water_fog[0] * (1.0 + 6.0 * sqr(water_fog[1]))
         * brightness_control * fog_visibility;
-    water_color.a = 1.0 - water_fog[1].x;
+    water_color.a = 1.0 - water_fog[1].y;
 
     // Get water wave normal
 

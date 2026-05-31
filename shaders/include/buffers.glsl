@@ -46,4 +46,8 @@ const int colortex16Format = RGBA16; // Voxy water gbuffer data
 const bool colortex16Clear = true;
 const vec4 colortex16ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 #endif
+
+#ifndef colortex16Format
+const int colortex16Format = RGBA16F; // clean sky for water refraction (BLOCKY_CLOUDS)
+#endif
 */

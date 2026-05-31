@@ -81,28 +81,28 @@ mat2x3 air_fog_analytic(
     float anisotropy = 1.0;
 
     scattering += 2.0 * (rayleigh_scattering + mie_scattering) * isotropic_phase
-        * ambient_color;
+        * ambient_color * max(skylight, eye_skylight);
 
     for (int i = 0; i < 4; ++i) {
         float mie_phase = 0.7 * henyey_greenstein_phase(LoV, 0.5 * anisotropy)
             + 0.3 * henyey_greenstein_phase(LoV, -0.2 * anisotropy);
 
         scattering += scatter_amount
-            * (rayleigh_scattering * isotropic_phase
+            * (rayleigh_scattering * rayleigh_phase(LoV)
                + mie_scattering * mie_phase)
-            * light_color * (1.0 - 0.9 * rainStrength) * shadow;
+            * light_color * shadow;
 
         scatter_amount *= 0.5;
         anisotropy *= 0.7;
     }
     //*/
 
-    scattering *= max(skylight, eye_skylight);
     scattering *= clamp01(1.0 - blindness - darknessFactor);
 
     // Artifically brighten fog in the early morning and evening (looks nice)
     float evening_glow
         = 0.75 * linear_step(0.05, 1.0, exp(-300.0 * sqr(sun_dir.y + 0.02)));
+    evening_glow *= mix(0.3, 1.0, shadow);
     scattering += scattering * evening_glow;
 
     return mat2x3(max0(scattering), max0(transmittance));
