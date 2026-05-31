@@ -1,91 +1,74 @@
-<br><br>
+# Pholegacy Shaders
 
-<h1 align = "center">Photon Shaders</h1>
+> A gameplay-focused shader pack paying tribute to the photon-legacy style
 
-<p align = "center">A gameplay-focused shader pack for Minecraft</p>
+---
 
-![Screenshot](docs/images/rainbow.png)
+## 📖 Origin & Motivation
 
-## Acknowledgments
+My original idea when modifying **Photon Shaders** was to bring its visual style closer to the author's **discontinued legacy branch – `photon-legacy`**. Like many others, I started out just tweaking configs. Over time, I kept adding more features… Eventually, I named this modified version "Pholegacy" – hoping it would stay true to the original, yet stand apart.
 
-* Menu translations: 
-  * [NakiriRuri](https://github.com/NakiriRuri) and [OrzMiku](https://github.com/Orzmiku) - Chinese Simplified (China; Mandarin)
-  * [ChunghwaMC](https://github.com/ChunghwaMC) - Chinese Traditional (Taiwan; Mandarin)
-  * [Jmayk](https://github.com/Jmayk-dev) - Italian
-  * [Timtaran](https://github.com/Timtaran) - Russian
-  * [shihyeon](https://github.com/shihyeon) - Korean
-  * [DVRKHz](https://github.com/DVRKHz) - Spanish
-  * [Patatagod69](https://github.com/PatataNL) - Dutch
-  * sincerity - Estonian
-* [Emin](https://github.com/EminGT) - Shadow bias method from [Complementary Reimagined](https://www.complementary.dev/shaders/) (fully fixes peter panning and light leaking underground!)
-* [DrDesten](https://github.com/DrDesten) - Depth tolerance calculation for SSR (helps to prevent false reflections)
-* [Essentuan](https://github.com/Essentuan) - Photonics mod support
-* [Jessie](https://github.com/Jessie-LC) - f0 and f82 values for labPBR hardcoded metals
-* [Sledgehammer Games](https://www.sledgehammergames.com/) - Bloom downsampling method used in Call of Duty Advanced Warfare (described [here](http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare))
-* http://momentsingrapics.de/ - Blue noise texture
-* [NASA Scientific Visualization Studio](https://svs.gsfc.nasa.gov/4851) - Galaxy image
+## ✨ Key Features
 
-## Installation
+- **Newly designed rainy atmosphere with enhanced rain puddle effects**
+- **PBR material adjustments & minor optimizations**
+- **Inherits the excellent performance & color management of the original**
+- **Fog adjustments / Light color tweaks / And more… (planned)**
+<img width="2560" height="1494" alt="2026-05-26_22 29 11" src="https://github.com/user-attachments/assets/4c620758-a1ac-44a5-aff8-74d0a4b10310" />
 
-* Photon can be used with [Iris](https://irisshaders.dev/download) (recommended) or [OptiFine](https://optifine.net/home)
-* Iris is a modern shader loader with far better performance, mod compatibility and developer features than OptiFine. Some features (Colored Lighting) will only work on Iris
-* Once you have your preferred shader loader installed, simply place the downloaded zip file in your `.minecraft/shaderpacks` folder
+---
 
-### Downloads
-* [Releases](https://modrinth.com/shader/photon-shader/versions) (recommended)
-* [Lastest commit](https://github.com/sixthsurge/photon/archive/refs/heads/main.zip)
+## 📜 License
 
-## Features
-* Fully revamped sky, lighting and water 
-* Detailed clouds with many layers and cloud types
-* Immersive weather system providing different skies each day
-* Voxel-based colored lighting (enabled with Ultra profile, requires Iris)
-* Screen-space reflections
-* Volumetric fog
-* Soft shadows with variable-size penumbras
-* Detailed ambient occlusion (GTAO)
-* Camera effects: bloom, depth of field, motion blur
-* Much improved image quality with TAA, FXAA and CAS
-* Advanced temporal upscaling (disabled by default) for low end devices
-* Extensive settings menu allowing you to customize every aspect of the shader
-* Full labPBR resource pack support
+This project is licensed under the **MIT License**. Please retain the original copyright notice when using or distributing.
 
-## Compatibility
-### GPU vendors
-* Nvidia 
-* AMD 
-* Intel 
-* **_NOT_** Apple Metal
-  * You may be able to get the shader pack to work by disabling some settings: try _SH Skylight_ and _Colored Shadows_.
-### Shader loaders
-* Iris - version 1.5 and above
-* OptiFine - on Minecraft 1.16.5 and above
-### Special mod support
-* [Distant Horizons](https://www.curseforge.com/minecraft/mc-mods/distant-horizons)
-* [Voxy](https://modrinth.com/mod/voxy)
-* [Photonics](https://modrinth.com/mod/photonics)
+---
 
-## Showcase videos
+## 🐛 Maintenance Notes
 
-<div align = "center">
-	<a href="http://www.youtube.com/watch?feature=player_embedded&v=vxE_CVeU8Rs" target="_blank"><img src="http://img.youtube.com/vi/vxE_CVeU8Rs/0.jpg" border="0"/></a>
-	<p> by iambeen
-	<br><br>
-</div>
+Due to current work pressure, **this project will not receive frequent or long-term maintenance**. I will do my best to check Issues and compatibility updates in my spare time.
 
-<div align = "center">
-	<a href="http://www.youtube.com/watch?feature=player_embedded&v=gMLFZMBK-ZQ" target="_blank"><img src="http://img.youtube.com/vi/gMLFZMBK-ZQ/0.jpg" border="0"/></a>
-	<p> by CosmicNexus
-	<br><br>
-</div>
+I am still learning GLSL, and my personal abilities are limited. Therefore:
 
-<div align = "center">
-	<a href="http://www.youtube.com/watch?feature=player_embedded&v=_aSmM7jg9Nw" target="_blank"><img src="http://img.youtube.com/vi/_aSmM7jg9Nw/0.jpg" border="0"/></a>
-	<p> by VIPUL
-	<br><br>
-</div>
+- I have referred to many excellent shader projects and open-source code snippets from the community, from which I gained inspiration and valuable implementation ideas.
+- Some code fragments were generated with the help of AI tools. All final code has been functionally and performance tested to ensure stability and usability.
 
-## Community
+**If you have new ideas for this shader, or would like to participate in its further development and maintenance – that would be fantastic!** Feel free to fork the repository or contact me directly.
 
-- For questions, suggestions and news regarding this shader pack, head to my [discord server](https://discord.gg/ngEW66HScd)
-- You can also [give me money](https://ko-fi.com/sixthsurge) if you want to 
+---
+
+# Pholegacy Shaders
+
+> 致敬经典：向 photon-legacy 风格靠拢的玩法向光影
+
+---
+
+## 📖 起源与初衷
+
+修改 **Photon Shaders** 最初的想法，是希望能让它的视觉风格向作者**不再维护的旧分支——`photon-legacy`** 靠拢。和许多人一样，一开始我只是调整配置，渐渐地我又往里面添加了更多功能……最后我将这个修改版命名为 "Pholegacy" shader，我希望它能忠于原版，又有所不同。
+
+## ✨ 主要特性
+
+- **全新设计的雨天氛围与增强的雨水坑特效**
+- **PBR 材质效果调整与小幅度优化**
+- **继承原版优秀的性能表现和色彩管理**
+- **雾气效果调整 / 光源颜色调整 / 还有更多……（计划中）**
+
+---
+
+## 📜 许可证
+
+本项目遵循 **MIT License** 开源协议。使用和分发时请保留原作者的相关版权声明。
+
+---
+
+## 🐛 维护说明
+
+由于目前的工作压力较重，**这个项目并不会进行长期或高频率的维护**。我会尽可能在空闲时检查 Issues 和兼容性更新。
+
+我的 GLSL 知识还在不断学习中，个人能力有限，因此：
+
+- 参考了社区中的优秀光影项目与开源代码片段，从中获得了许多启发，也汲取了宝贵的实现思路。
+- 借助 AI 工具生成了部分代码片段，所有最终代码均经过功能与性能测试，确保稳定可用。
+
+**如果你对这个光影有新的想法，或者愿意参与后续的开发和维护，那真是太棒了！** 欢迎 fork 提交代码或直接联系我。
